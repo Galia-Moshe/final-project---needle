@@ -1,0 +1,5 @@
+cluster_id,name,n_precincts,SSE_cohesion,mean_silhouette,mean_crime_per_km2
+0,High-density (theft / tourist core),16,92.3,0.202,8833
+1,High-density (violence-leaning),22,119.5,0.136,6994
+2,Low-risk residential,1,0.0,0.0,1
+3,Moderate mixed,39,157.5,0.247,2647
