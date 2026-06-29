@@ -1,0 +1,11 @@
+name,lat,lon,borough,verify_url,verified,notes
+Times Square,40.758,-73.9855,Manhattan,"https://maps.google.com/?q=40.7580,-73.9855",True,Intersection of Broadway and 7th Ave at 45th St
+Central Park (South Entrance),40.7677,-73.9718,Manhattan,"https://maps.google.com/?q=40.7677,-73.9718",True,Grand Army Plaza entrance at 59th St
+Brooklyn Bridge (Manhattan Side),40.7061,-73.9969,Manhattan,"https://maps.google.com/?q=40.7061,-73.9969",True,"Manhattan pedestrian entrance, Centre St"
+Empire State Building,40.7484,-73.9967,Manhattan,"https://maps.google.com/?q=40.7484,-73.9967",True,"350 Fifth Avenue, Midtown"
+Rockefeller Center,40.7587,-73.9787,Manhattan,"https://maps.google.com/?q=40.7587,-73.9787",True,"45 Rockefeller Plaza, main entrance"
+High Line (Gansevoort Entrance),40.7401,-74.0048,Manhattan,"https://maps.google.com/?q=40.7401,-74.0048",True,"Southern entrance at Gansevoort St, Meatpacking District"
+Metropolitan Museum of Art,40.7794,-73.9632,Manhattan,"https://maps.google.com/?q=40.7794,-73.9632",True,"1000 Fifth Avenue, Upper East Side"
+Grand Central Terminal,40.7527,-73.9772,Manhattan,"https://maps.google.com/?q=40.7527,-73.9772",True,"89 E 42nd St, Midtown — main entrance"
+Battery Park (Statue of Liberty Ferry),40.7033,-74.017,Manhattan,"https://maps.google.com/?q=40.7033,-74.0170",True,Ferry terminal at southern tip of Manhattan
+Coney Island (Luna Park Entrance),40.5749,-73.9857,Brooklyn,"https://maps.google.com/?q=40.5749,-73.9857",True,"1000 Surf Avenue, Brooklyn — main tourist boardwalk area"

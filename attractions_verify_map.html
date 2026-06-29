@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_416a863789a5d494bfa49ebaab092c37 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_416a863789a5d494bfa49ebaab092c37" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_416a863789a5d494bfa49ebaab092c37 = L.map(
+                "map_416a863789a5d494bfa49ebaab092c37",
+                {
+                    center: [40.73, -73.97],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_ba0d7bf57e2977aa71435a9d2a1a5583 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_ba0d7bf57e2977aa71435a9d2a1a5583.addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var marker_cf04f8a82577ab74fe424148312264cd = L.marker(
+                [40.758, -73.9855],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_49bbb5ccd6b0b0074e7b31eb1a18b7bd = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1bace9037e47096e70a2a6fea5cbbb35 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a5577aad955a626a4afefa5d568be9dc = $(`<div id="html_a5577aad955a626a4afefa5d568be9dc" style="width: 100.0%; height: 100.0%;"><b>Times Square</b><br>Lat: 40.758, Lon: -73.9855<br>Notes: Intersection of Broadway and 7th Ave at 45th St<br><a href='https://maps.google.com/?q=40.7580,-73.9855' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_1bace9037e47096e70a2a6fea5cbbb35.setContent(html_a5577aad955a626a4afefa5d568be9dc);
+            
+        
+
+        marker_cf04f8a82577ab74fe424148312264cd.bindPopup(popup_1bace9037e47096e70a2a6fea5cbbb35)
+        ;
+
+        
+    
+    
+            marker_cf04f8a82577ab74fe424148312264cd.bindTooltip(
+                `<div>
+                     Times Square
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_cf04f8a82577ab74fe424148312264cd.setIcon(icon_49bbb5ccd6b0b0074e7b31eb1a18b7bd);
+            
+    
+            var marker_109737171d72582636cf2e4765965e38 = L.marker(
+                [40.7677, -73.9718],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_e6d9cf4e0c97e101c45d7d2760a76e37 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_2942dd2cab3dd5ba8c7d3d4e8dd95d26 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3cb3227bfc8c281fb2c0073fad1b0f1c = $(`<div id="html_3cb3227bfc8c281fb2c0073fad1b0f1c" style="width: 100.0%; height: 100.0%;"><b>Central Park (South Entrance)</b><br>Lat: 40.7677, Lon: -73.9718<br>Notes: Grand Army Plaza entrance at 59th St<br><a href='https://maps.google.com/?q=40.7677,-73.9718' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_2942dd2cab3dd5ba8c7d3d4e8dd95d26.setContent(html_3cb3227bfc8c281fb2c0073fad1b0f1c);
+            
+        
+
+        marker_109737171d72582636cf2e4765965e38.bindPopup(popup_2942dd2cab3dd5ba8c7d3d4e8dd95d26)
+        ;
+
+        
+    
+    
+            marker_109737171d72582636cf2e4765965e38.bindTooltip(
+                `<div>
+                     Central Park (South Entrance)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_109737171d72582636cf2e4765965e38.setIcon(icon_e6d9cf4e0c97e101c45d7d2760a76e37);
+            
+    
+            var marker_a2b5aa5bb0b2cd2eee10a675d4a72809 = L.marker(
+                [40.7061, -73.9969],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_0c92c4c305c9c4c7adbda32c0a742097 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9b81d893f325e01867f64ab9d8714400 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_38235a19a9e04ca45fd4fb7c3bc4ecb0 = $(`<div id="html_38235a19a9e04ca45fd4fb7c3bc4ecb0" style="width: 100.0%; height: 100.0%;"><b>Brooklyn Bridge (Manhattan Side)</b><br>Lat: 40.7061, Lon: -73.9969<br>Notes: Manhattan pedestrian entrance, Centre St<br><a href='https://maps.google.com/?q=40.7061,-73.9969' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_9b81d893f325e01867f64ab9d8714400.setContent(html_38235a19a9e04ca45fd4fb7c3bc4ecb0);
+            
+        
+
+        marker_a2b5aa5bb0b2cd2eee10a675d4a72809.bindPopup(popup_9b81d893f325e01867f64ab9d8714400)
+        ;
+
+        
+    
+    
+            marker_a2b5aa5bb0b2cd2eee10a675d4a72809.bindTooltip(
+                `<div>
+                     Brooklyn Bridge (Manhattan Side)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a2b5aa5bb0b2cd2eee10a675d4a72809.setIcon(icon_0c92c4c305c9c4c7adbda32c0a742097);
+            
+    
+            var marker_f0c385edfc98c817100b858c71b3a411 = L.marker(
+                [40.7484, -73.9967],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_37674f12ea06b4c73db948f3aff229dc = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e409fd8803d8c145ff4487c87f0f96e6 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3fb97356b2e02decbc95355ac0bc4aff = $(`<div id="html_3fb97356b2e02decbc95355ac0bc4aff" style="width: 100.0%; height: 100.0%;"><b>Empire State Building</b><br>Lat: 40.7484, Lon: -73.9967<br>Notes: 350 Fifth Avenue, Midtown<br><a href='https://maps.google.com/?q=40.7484,-73.9967' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_e409fd8803d8c145ff4487c87f0f96e6.setContent(html_3fb97356b2e02decbc95355ac0bc4aff);
+            
+        
+
+        marker_f0c385edfc98c817100b858c71b3a411.bindPopup(popup_e409fd8803d8c145ff4487c87f0f96e6)
+        ;
+
+        
+    
+    
+            marker_f0c385edfc98c817100b858c71b3a411.bindTooltip(
+                `<div>
+                     Empire State Building
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_f0c385edfc98c817100b858c71b3a411.setIcon(icon_37674f12ea06b4c73db948f3aff229dc);
+            
+    
+            var marker_0bc6f04e14afa5b1549eb84ffffaf1b7 = L.marker(
+                [40.7587, -73.9787],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_d6d7a188116689e58bdc3450e1269e30 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6c9869c06857906735b6a2757e517201 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_8c7e55cde1d7fa72e50753c90ef370ba = $(`<div id="html_8c7e55cde1d7fa72e50753c90ef370ba" style="width: 100.0%; height: 100.0%;"><b>Rockefeller Center</b><br>Lat: 40.7587, Lon: -73.9787<br>Notes: 45 Rockefeller Plaza, main entrance<br><a href='https://maps.google.com/?q=40.7587,-73.9787' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_6c9869c06857906735b6a2757e517201.setContent(html_8c7e55cde1d7fa72e50753c90ef370ba);
+            
+        
+
+        marker_0bc6f04e14afa5b1549eb84ffffaf1b7.bindPopup(popup_6c9869c06857906735b6a2757e517201)
+        ;
+
+        
+    
+    
+            marker_0bc6f04e14afa5b1549eb84ffffaf1b7.bindTooltip(
+                `<div>
+                     Rockefeller Center
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_0bc6f04e14afa5b1549eb84ffffaf1b7.setIcon(icon_d6d7a188116689e58bdc3450e1269e30);
+            
+    
+            var marker_d76ad737c98895898d2351d1a76d37e7 = L.marker(
+                [40.7401, -74.0048],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_f98a9fded1eed9d623acc5cd7226fe49 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_fea5236651c19981d76597e6df291091 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ba9492eb7fd915f13a1e333d5f7979a8 = $(`<div id="html_ba9492eb7fd915f13a1e333d5f7979a8" style="width: 100.0%; height: 100.0%;"><b>High Line (Gansevoort Entrance)</b><br>Lat: 40.7401, Lon: -74.0048<br>Notes: Southern entrance at Gansevoort St, Meatpacking District<br><a href='https://maps.google.com/?q=40.7401,-74.0048' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_fea5236651c19981d76597e6df291091.setContent(html_ba9492eb7fd915f13a1e333d5f7979a8);
+            
+        
+
+        marker_d76ad737c98895898d2351d1a76d37e7.bindPopup(popup_fea5236651c19981d76597e6df291091)
+        ;
+
+        
+    
+    
+            marker_d76ad737c98895898d2351d1a76d37e7.bindTooltip(
+                `<div>
+                     High Line (Gansevoort Entrance)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d76ad737c98895898d2351d1a76d37e7.setIcon(icon_f98a9fded1eed9d623acc5cd7226fe49);
+            
+    
+            var marker_19279d30dfaa32579211ea7861bcd952 = L.marker(
+                [40.7794, -73.9632],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_c6a39faafe1194ec961cf8ed1ddc7355 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_3e032494658fc264d7057c11631f34e0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3da86a3569b556b886de60b28633ce33 = $(`<div id="html_3da86a3569b556b886de60b28633ce33" style="width: 100.0%; height: 100.0%;"><b>Metropolitan Museum of Art</b><br>Lat: 40.7794, Lon: -73.9632<br>Notes: 1000 Fifth Avenue, Upper East Side<br><a href='https://maps.google.com/?q=40.7794,-73.9632' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_3e032494658fc264d7057c11631f34e0.setContent(html_3da86a3569b556b886de60b28633ce33);
+            
+        
+
+        marker_19279d30dfaa32579211ea7861bcd952.bindPopup(popup_3e032494658fc264d7057c11631f34e0)
+        ;
+
+        
+    
+    
+            marker_19279d30dfaa32579211ea7861bcd952.bindTooltip(
+                `<div>
+                     Metropolitan Museum of Art
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_19279d30dfaa32579211ea7861bcd952.setIcon(icon_c6a39faafe1194ec961cf8ed1ddc7355);
+            
+    
+            var marker_1cf4dce51a015cf3d4fb2ac41158b8d3 = L.marker(
+                [40.7527, -73.9772],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_281d62dcc8fa0278cbeb066e1b619deb = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6f77666d0a1c36e963babc76ac6d2681 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7b67871635f8097f2fd229c75f6e0aba = $(`<div id="html_7b67871635f8097f2fd229c75f6e0aba" style="width: 100.0%; height: 100.0%;"><b>Grand Central Terminal</b><br>Lat: 40.7527, Lon: -73.9772<br>Notes: 89 E 42nd St, Midtown — main entrance<br><a href='https://maps.google.com/?q=40.7527,-73.9772' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_6f77666d0a1c36e963babc76ac6d2681.setContent(html_7b67871635f8097f2fd229c75f6e0aba);
+            
+        
+
+        marker_1cf4dce51a015cf3d4fb2ac41158b8d3.bindPopup(popup_6f77666d0a1c36e963babc76ac6d2681)
+        ;
+
+        
+    
+    
+            marker_1cf4dce51a015cf3d4fb2ac41158b8d3.bindTooltip(
+                `<div>
+                     Grand Central Terminal
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_1cf4dce51a015cf3d4fb2ac41158b8d3.setIcon(icon_281d62dcc8fa0278cbeb066e1b619deb);
+            
+    
+            var marker_1b7987f22466ba02e683b3d86509918a = L.marker(
+                [40.7033, -74.017],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_e631cac1507e9d48a0236deee988ed9a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_ca22d5899887dfd8ff7d101ce1c95a56 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ea0a6e63f1ff3f42bae3bf515453b952 = $(`<div id="html_ea0a6e63f1ff3f42bae3bf515453b952" style="width: 100.0%; height: 100.0%;"><b>Battery Park (Statue of Liberty Ferry)</b><br>Lat: 40.7033, Lon: -74.017<br>Notes: Ferry terminal at southern tip of Manhattan<br><a href='https://maps.google.com/?q=40.7033,-74.0170' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_ca22d5899887dfd8ff7d101ce1c95a56.setContent(html_ea0a6e63f1ff3f42bae3bf515453b952);
+            
+        
+
+        marker_1b7987f22466ba02e683b3d86509918a.bindPopup(popup_ca22d5899887dfd8ff7d101ce1c95a56)
+        ;
+
+        
+    
+    
+            marker_1b7987f22466ba02e683b3d86509918a.bindTooltip(
+                `<div>
+                     Battery Park (Statue of Liberty Ferry)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_1b7987f22466ba02e683b3d86509918a.setIcon(icon_e631cac1507e9d48a0236deee988ed9a);
+            
+    
+            var marker_1506aefcf250a259da102f46f55723c7 = L.marker(
+                [40.5749, -73.9857],
+                {
+}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            var icon_ab6c6f66e9825b5dd5cd0af94abcec4e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7bf52a01e78295b29ade7ac696202b1a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_cd7626ae4625b9a63db33c7b877c1e5d = $(`<div id="html_cd7626ae4625b9a63db33c7b877c1e5d" style="width: 100.0%; height: 100.0%;"><b>Coney Island (Luna Park Entrance)</b><br>Lat: 40.5749, Lon: -73.9857<br>Notes: 1000 Surf Avenue, Brooklyn — main tourist boardwalk area<br><a href='https://maps.google.com/?q=40.5749,-73.9857' target='_blank'>Open in Google Maps</a></div>`)[0];
+                popup_7bf52a01e78295b29ade7ac696202b1a.setContent(html_cd7626ae4625b9a63db33c7b877c1e5d);
+            
+        
+
+        marker_1506aefcf250a259da102f46f55723c7.bindPopup(popup_7bf52a01e78295b29ade7ac696202b1a)
+        ;
+
+        
+    
+    
+            marker_1506aefcf250a259da102f46f55723c7.bindTooltip(
+                `<div>
+                     Coney Island (Luna Park Entrance)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_1506aefcf250a259da102f46f55723c7.setIcon(icon_ab6c6f66e9825b5dd5cd0af94abcec4e);
+            
+    
+            var circle_12e33ef7d4f0d3c9ceb82e5bf71fe2aa = L.circle(
+                [40.758, -73.9855],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_12e33ef7d4f0d3c9ceb82e5bf71fe2aa.bindTooltip(
+                `<div>
+                     Times Square — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_ad036663f9528fa677c8843e1e50c749 = L.circle(
+                [40.7677, -73.9718],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_ad036663f9528fa677c8843e1e50c749.bindTooltip(
+                `<div>
+                     Central Park (South Entrance) — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_a23f70f51cc98ae3504c1675dece3551 = L.circle(
+                [40.7061, -73.9969],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_a23f70f51cc98ae3504c1675dece3551.bindTooltip(
+                `<div>
+                     Brooklyn Bridge (Manhattan Side) — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_f2cc310892011538173c828b28d3caa4 = L.circle(
+                [40.7484, -73.9967],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_f2cc310892011538173c828b28d3caa4.bindTooltip(
+                `<div>
+                     Empire State Building — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_4ac55c293af00dcea324684254bf582d = L.circle(
+                [40.7587, -73.9787],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_4ac55c293af00dcea324684254bf582d.bindTooltip(
+                `<div>
+                     Rockefeller Center — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_dab6b99e6fa0568c2455b28d6826d82e = L.circle(
+                [40.7401, -74.0048],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_dab6b99e6fa0568c2455b28d6826d82e.bindTooltip(
+                `<div>
+                     High Line (Gansevoort Entrance) — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_b271a6437e7c69f8cf96a3b3a5e3ea5f = L.circle(
+                [40.7794, -73.9632],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_b271a6437e7c69f8cf96a3b3a5e3ea5f.bindTooltip(
+                `<div>
+                     Metropolitan Museum of Art — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_f2801cf455b1d151ac5070f60608b895 = L.circle(
+                [40.7527, -73.9772],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_f2801cf455b1d151ac5070f60608b895.bindTooltip(
+                `<div>
+                     Grand Central Terminal — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_ba0c469908f5b67e6860f25d360da87d = L.circle(
+                [40.7033, -74.017],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_ba0c469908f5b67e6860f25d360da87d.bindTooltip(
+                `<div>
+                     Battery Park (Statue of Liberty Ferry) — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_908790a233e799e18ad2e66f9e9c3555 = L.circle(
+                [40.5749, -73.9857],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 500, "stroke": true, "weight": 3}
+            ).addTo(map_416a863789a5d494bfa49ebaab092c37);
+        
+    
+            circle_908790a233e799e18ad2e66f9e9c3555.bindTooltip(
+                `<div>
+                     Coney Island (Luna Park Entrance) — 500m tourist zone
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>
