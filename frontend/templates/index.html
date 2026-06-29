@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYC Safe Transit Recommender</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<header>
+  <h1>NYC Safe Transit Recommender</h1>
+  <span class="subtitle">New York City &mdash; Subway Route Finder</span>
+</header>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <!-- Search form -->
+    <section class="panel">
+      <h2>Find Route</h2>
+      <form id="route-form">
+        <label for="source-input">From</label>
+        <input id="source-input" type="text" placeholder="Start station…" autocomplete="off" required>
+
+        <label for="dest-input">To</label>
+        <input id="dest-input" type="text" placeholder="End station…" autocomplete="off" required>
+
+        <!-- hidden ID fields -->
+        <input type="hidden" id="source-id">
+        <input type="hidden" id="dest-id">
+
+        <button type="submit">Find Safe Route</button>
+      </form>
+      <div id="form-error" class="error-msg" style="display:none"></div>
+    </section>
+
+    <!-- Results -->
+    <section class="panel" id="results-panel" style="display:none">
+      <h2>Route</h2>
+      <div id="route-time" class="route-time"></div>
+      <ol id="route-steps"></ol>
+    </section>
+
+    <!-- Danger zones admin -->
+    <section class="panel danger-admin">
+      <h2>Danger Zones</h2>
+      <p class="hint">Click anywhere on the map to mark a danger zone.</p>
+      <div id="danger-zones-list"></div>
+    </section>
+
+  </aside>
+
+  <!-- ── Map ── -->
+  <div id="map"></div>
+
+</div>
+
+<!-- Stops data embedded for autocomplete -->
+<script>
+  window.STOPS = {{ stops | tojson }};
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/map.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
