@@ -19,36 +19,39 @@
   <!-- ── Sidebar ── -->
   <aside class="sidebar">
 
-    <!-- Search form -->
     <section class="panel">
       <h2>Find Route</h2>
       <form id="route-form">
         <label for="source-input">From</label>
-        <input id="source-input" type="text" placeholder="Start station…" autocomplete="off" required>
+        <input id="source-input" type="text"
+               placeholder="e.g. Central Park, 350 5th Ave, JFK Airport…"
+               required autocomplete="off">
 
         <label for="dest-input">To</label>
-        <input id="dest-input" type="text" placeholder="End station…" autocomplete="off" required>
+        <input id="dest-input" type="text"
+               placeholder="e.g. Brooklyn Bridge, 200 Water St…"
+               required autocomplete="off">
 
-        <!-- hidden ID fields -->
-        <input type="hidden" id="source-id">
-        <input type="hidden" id="dest-id">
-
-        <button type="submit">Find Safe Route</button>
+        <button type="submit" id="search-btn">Find Safe Route</button>
       </form>
       <div id="form-error" class="error-msg" style="display:none"></div>
     </section>
 
-    <!-- Results -->
     <section class="panel" id="results-panel" style="display:none">
       <h2>Route</h2>
-      <div id="route-time" class="route-time"></div>
-      <ol id="route-steps"></ol>
+      <div id="route-cards"></div>
     </section>
 
-    <!-- Danger zones admin -->
     <section class="panel danger-admin">
       <h2>Danger Zones</h2>
-      <p class="hint">Click anywhere on the map to mark a danger zone.</p>
+      <p class="hint">Import a CSV file with unsafe area coordinates, or click the map to add a zone manually.</p>
+
+      <label class="csv-upload-btn" title="CSV columns: lat, lng, name (optional), radius_km (optional)">
+        Import CSV
+        <input type="file" id="csv-upload" accept=".csv" style="display:none">
+      </label>
+      <div id="csv-status"></div>
+
       <div id="danger-zones-list"></div>
     </section>
 
@@ -59,10 +62,6 @@
 
 </div>
 
-<!-- Stops data embedded for autocomplete -->
-<script>
-  window.STOPS = {{ stops | tojson }};
-</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/static/js/map.js"></script>
 <script src="/static/js/app.js"></script>

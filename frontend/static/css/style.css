@@ -95,6 +95,7 @@ form button {
   transition: background .15s;
 }
 form button:hover { background: #00296b; }
+form button:disabled { background: #6b7280; cursor: not-allowed; }
 
 /* Autocomplete dropdown */
 .autocomplete-list {
@@ -130,23 +131,63 @@ form button:hover { background: #00296b; }
   font-size: 12px;
 }
 
-/* ── Route results ── */
-.route-time {
+/* ── Route cards ── */
+#route-cards { display: flex; flex-direction: column; gap: 12px; }
+
+.route-card {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+.route-card--safe   { border-color: #16a34a; }
+.route-card--unsafe { border-color: #ef4444; }
+
+.route-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-weight: 700;
   font-size: 13px;
+}
+.route-card--safe   .route-card__header { background: #dcfce7; color: #14532d; }
+.route-card--unsafe .route-card__header { background: #fee2e2; color: #7f1d1d; }
+
+.route-badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.route-card__time { font-size: 13px; font-weight: 700; }
+
+.route-card__warning {
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #9a3412;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 10px;
 }
 
-#route-steps {
-  padding-left: 0;
+.no-safe-warning {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #7f1d1d;
+  font-weight: 600;
+}
+
+.route-steps {
+  padding: 10px 12px;
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: #fff;
 }
-
-#route-steps li {
+.route-steps li {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -156,8 +197,8 @@ form button:hover { background: #00296b; }
 
 .step-badge {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -179,8 +220,43 @@ form button:hover { background: #00296b; }
 .line-N, .line-Q, .line-R, .line-W { background: #FCCC0A; color: #000; }
 .line-S                    { background: #808183; }
 .line-walk                 { background: #6b7280; }
+.line-bus                  { background: #1d4ed8; }
 
 .step-text { padding-top: 5px; }
+.step-dist { color: #6b7280; font-size: 11px; }
+
+.route-summary {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  border-bottom: 1px solid #e8eaf0;
+}
+
+/* ── CSV upload button ── */
+.csv-upload-btn {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 7px 14px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #374151;
+  transition: background .15s;
+}
+.csv-upload-btn:hover { background: #e5e7eb; }
+
+#csv-status {
+  font-size: 12px;
+  margin-bottom: 8px;
+  min-height: 18px;
+}
+#csv-status.ok  { color: #16a34a; }
+#csv-status.err { color: #b91c1c; }
 
 /* ── Danger zones list ── */
 .hint {
