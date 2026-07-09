@@ -27,7 +27,12 @@ def geocode_autocomplete(query, limit=6):
         # Shorten "Empire State Building, 350, 5th Avenue, …, United States" → first 3 parts
         parts = r["display_name"].split(", ")
         label = ", ".join(parts[:3])
-        suggestions.append({"label": label, "full": r["display_name"]})
+        suggestions.append({
+            "label": label,
+            "full": r["display_name"],
+            "lat": float(r["lat"]),
+            "lng": float(r["lon"]),
+        })
     return suggestions
 
 

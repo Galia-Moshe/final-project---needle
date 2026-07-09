@@ -57,6 +57,26 @@ header .subtitle { font-size: 12px; opacity: .7; }
   margin-bottom: 12px;
 }
 
+/* ── Data-view case toggle ── */
+.case-toggle {
+  display: flex;
+  border: 1px solid #d7dbe8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.case-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border: none;
+  background: #f4f6fb;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.case-btn + .case-btn { border-left: 1px solid #d7dbe8; }
+.case-btn.active { background: #003883; color: #fff; }
+
 /* ── Form ── */
 form label {
   display: block;
@@ -139,8 +159,8 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
   overflow: hidden;
   border: 2px solid transparent;
 }
-.route-card--safe   { border-color: #16a34a; }
-.route-card--unsafe { border-color: #ef4444; }
+.route-card--green { border-color: #16a34a; }
+.route-card--red   { border-color: #ef4444; }
 
 .route-card__header {
   display: flex;
@@ -150,8 +170,8 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
   font-weight: 700;
   font-size: 13px;
 }
-.route-card--safe   .route-card__header { background: #dcfce7; color: #14532d; }
-.route-card--unsafe .route-card__header { background: #fee2e2; color: #7f1d1d; }
+.route-card--green .route-card__header { background: #dcfce7; color: #14532d; }
+.route-card--red   .route-card__header { background: #fee2e2; color: #7f1d1d; }
 
 .route-badge {
   font-size: 12px;
@@ -169,7 +189,7 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
   font-weight: 600;
 }
 
-.no-safe-warning {
+.no-green-warning {
   background: #fee2e2;
   border: 1px solid #fca5a5;
   border-radius: 6px;

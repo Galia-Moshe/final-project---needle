@@ -9,6 +9,7 @@ Fallback: OSRM public server + waypoint heuristic (used when ORS key not set).
 import math
 import requests
 from .danger_zones import get_danger_zones
+from .warning_zones import get_warning_zones
 from config import ORS_API_KEY
 
 ORS_URL     = "https://api.openrouteservice.org/v2/directions/foot-walking/geojson"
@@ -130,33 +131,28 @@ def _ors(src_lat, src_lng, dst_lat, dst_lng, avoid_polys=None):
     }
 
 
-def _find_routes_ors(src_lat, src_lng, dst_lat, dst_lng, zones):
-    # Direct (potentially unsafe) route
-    direct = _ors(src_lat, src_lng, dst_lat, dst_lng)
-    if direct is None:
+def _route_avoiding_ors(src_lat, src_lng, dst_lat, dst_lng, avoid_zones):
+    """
+    Route via ORS. avoid_zones = zones the path must not cross (empty list =
+    no avoidance, i.e. the absolute shortest path). Returns a route dict, or
+    None if ORS failed, or if it still returned a path crossing one of
+    avoid_zones (ORS avoid_polygons is a soft constraint and can occasionally
+    fail to fully honor it).
+    """
+    avoid_polys = None
+    if avoid_zones:
+        avoid_polys = [
+            z["polygon"] if len(z.get("polygon", [])) >= 3
+            else _circle_poly(z["lat"], z["lng"], z["radius_km"])
+            for z in avoid_zones
+        ]
+
+    route = _ors(src_lat, src_lng, dst_lat, dst_lng, avoid_polys)
+    if route is None:
         return None
-
-    blocking = _blocking_zones(direct["coords"], zones)
-    if not blocking:
-        direct["is_safe"] = True
-        return {"safe_route": direct, "unsafe_route": None}
-
-    direct["is_safe"] = False
-
-    # Build the avoid list: polygon zones use their actual boundary;
-    # circle zones are approximated as 24-gon polygons.
-    avoid = []
-    for z in zones:
-        poly = z.get("polygon", [])
-        avoid.append(poly if len(poly) >= 3 else _circle_poly(z["lat"], z["lng"], z["radius_km"]))
-
-    safe = _ors(src_lat, src_lng, dst_lat, dst_lng, avoid)
-    if safe:
-        safe["is_safe"] = not bool(_blocking_zones(safe["coords"], zones))
-        if not safe["is_safe"]:
-            safe = None   # ORS still went through a zone (shouldn't happen)
-
-    return {"safe_route": safe, "unsafe_route": direct}
+    if avoid_zones and _blocking_zones(route["coords"], avoid_zones):
+        return None
+    return route
 
 
 # ── OSRM fallback (used when ORS key not configured) ─────────────
@@ -256,37 +252,56 @@ def _osrm_bypass_candidates(zone):
     return [(n,c_lng),(s,c_lng),(c_lat,e),(c_lat,w),(n,w),(n,e),(s,w),(s,e)]
 
 
-def _find_routes_osrm(src_lat, src_lng, dst_lat, dst_lng, zones):
-    shortest = _osrm([(src_lat, src_lng), (dst_lat, dst_lng)])
-    if shortest is None:
+def _route_avoiding_osrm(src_lat, src_lng, dst_lat, dst_lng, avoid_zones):
+    """
+    Route via OSRM. avoid_zones = zones the path must not cross (empty list =
+    no avoidance, i.e. the absolute shortest path). OSRM has no native
+    avoidance option, so when avoid_zones is non-empty this tries a detour
+    waypoint around each blocking zone and keeps the fastest detour that
+    clears all of avoid_zones. Returns None if no such route is found.
+    """
+    direct = _osrm([(src_lat, src_lng), (dst_lat, dst_lng)])
+    if direct is None:
         return None
+    if not avoid_zones:
+        return direct
 
-    blocking = _blocking_zones(shortest["coords"], zones)
+    blocking = _blocking_zones(direct["coords"], avoid_zones)
     if not blocking:
-        shortest["is_safe"] = True
-        return {"safe_route": shortest, "unsafe_route": None}
+        return direct
 
-    shortest["is_safe"] = False
     best = None
     for zone in blocking:
         for wp in _osrm_bypass_candidates(zone):
             c = _osrm([(src_lat, src_lng), wp, (dst_lat, dst_lng)])
-            if c and not _blocking_zones(c["coords"], zones):
-                c["is_safe"] = True
+            if c and not _blocking_zones(c["coords"], avoid_zones):
                 if best is None or c["total_time"] < best["total_time"]:
                     best = c
 
-    return {"safe_route": best, "unsafe_route": shortest}
+    return best
 
 
 # ── Public entry point ────────────────────────────────────────────
 
-def find_routes(src_lat, src_lng, dst_lat, dst_lng):
+def find_routes(src_lat, src_lng, dst_lat, dst_lng, case="nypd"):
     """
-    Returns {'safe_route': ..., 'unsafe_route': ...} or None on network failure.
-    Uses ORS (accurate) when key is configured, OSRM heuristic otherwise.
+    Two-route search, scoped to whichever map "case" the user has active:
+      - case='nypd':    green_route avoids red (NYPD danger) zones.
+      - case='reviews': green_route avoids yellow (review-warning) zones.
+    red_route is always the absolute shortest path (no avoidance at all),
+    regardless of case.
+
+    Returns {'green_route', 'red_route'} (each a route dict or None), or
+    None on a routing-service failure. Uses ORS (accurate) when a key is
+    configured, OSRM heuristic otherwise.
     """
-    zones = get_danger_zones()
-    if ORS_API_KEY:
-        return _find_routes_ors(src_lat, src_lng, dst_lat, dst_lng, zones)
-    return _find_routes_osrm(src_lat, src_lng, dst_lat, dst_lng, zones)
+    avoid_zones = get_warning_zones() if case == "reviews" else get_danger_zones()
+    route_fn = _route_avoiding_ors if ORS_API_KEY else _route_avoiding_osrm
+
+    # Also doubles as an "is the routing service up at all" check.
+    red_route = route_fn(src_lat, src_lng, dst_lat, dst_lng, [])
+    if red_route is None:
+        return None
+
+    green_route = route_fn(src_lat, src_lng, dst_lat, dst_lng, avoid_zones)
+    return {"green_route": green_route, "red_route": red_route}

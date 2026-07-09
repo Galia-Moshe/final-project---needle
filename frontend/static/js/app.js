@@ -1,5 +1,17 @@
+// ── Data-view case toggle ─────────────────────────────────────────
+let activeCase = 'nypd';   // 'nypd' | 'reviews' — scopes both the map layer and route search
+
+document.querySelectorAll('.case-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.case-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCase = btn.dataset.case;
+    window.mapHelpers.setActiveCase(activeCase);
+  });
+});
+
 // ── Address autocomplete ──────────────────────────────────────────
-function makeAutocomplete(inputEl) {
+function makeAutocomplete(inputEl, onSelect) {
   const wrapper = document.createElement('div');
   wrapper.className = 'autocomplete-wrapper';
   inputEl.parentNode.insertBefore(wrapper, inputEl);
@@ -12,21 +24,28 @@ function makeAutocomplete(inputEl) {
 
   let activeIdx = -1;
   let timer = null;
+  let suggestions = [];
 
   function hide() { list.style.display = 'none'; activeIdx = -1; }
 
-  function show(suggestions) {
+  function choose(s) {
+    inputEl.value = s.label;
+    hide();
+    if (onSelect) onSelect(s);
+  }
+
+  function show(items) {
+    suggestions = items;
     list.innerHTML = '';
     activeIdx = -1;
-    if (!suggestions.length) { hide(); return; }
-    suggestions.forEach(s => {
+    if (!items.length) { hide(); return; }
+    items.forEach(s => {
       const li = document.createElement('li');
       li.textContent = s.label;
       li.title = s.full;
       li.addEventListener('mousedown', e => {
         e.preventDefault();
-        inputEl.value = s.label;
-        hide();
+        choose(s);
       });
       list.appendChild(li);
     });
@@ -56,8 +75,8 @@ function makeAutocomplete(inputEl) {
       activeIdx = Math.max(activeIdx - 1, 0);
     } else if (e.key === 'Enter' && activeIdx >= 0) {
       e.preventDefault();
-      inputEl.value = items[activeIdx].textContent;
-      hide(); return;
+      choose(suggestions[activeIdx]);
+      return;
     } else if (e.key === 'Escape') {
       hide(); return;
     } else { return; }
@@ -67,8 +86,12 @@ function makeAutocomplete(inputEl) {
   document.addEventListener('click', e => { if (!wrapper.contains(e.target)) hide(); });
 }
 
-makeAutocomplete(document.getElementById('source-input'));
-makeAutocomplete(document.getElementById('dest-input'));
+makeAutocomplete(document.getElementById('source-input'), s => {
+  window.mapHelpers.setPreviewMarker('source', s.lat, s.lng, 'Start');
+});
+makeAutocomplete(document.getElementById('dest-input'), s => {
+  window.mapHelpers.setPreviewMarker('dest', s.lat, s.lng, 'Destination');
+});
 
 // ── Step icon helper ──────────────────────────────────────────────
 function stepIcon(instruction) {
@@ -95,6 +118,11 @@ function showError(msg) { formError.textContent = msg; formError.style.display =
 function clearError()   { formError.style.display = 'none'; }
 
 // ── Build one route card ──────────────────────────────────────────
+const ROUTE_LABELS = {
+  green: { badge: '✓ Green Route — Avoids Flagged Zones' },
+  red:   { badge: '⚠ Red Route — Absolute Shortest' },
+};
+
 function buildCard(route, type) {
   const card = document.createElement('div');
   card.className = `route-card route-card--${type}`;
@@ -102,18 +130,16 @@ function buildCard(route, type) {
   // Header
   const hdr = document.createElement('div');
   hdr.className = 'route-card__header';
-  hdr.innerHTML = type === 'safe'
-    ? `<span class="route-badge route-badge--safe">✓ Safe Walking Route</span>
-       <span class="route-card__time">${Math.round(route.total_time)} min</span>`
-    : `<span class="route-badge route-badge--unsafe">⚠ Unsafe Route</span>
-       <span class="route-card__time">${Math.round(route.total_time)} min</span>`;
+  hdr.innerHTML = `
+    <span class="route-badge route-badge--${type}">${ROUTE_LABELS[type].badge}</span>
+    <span class="route-card__time">${Math.round(route.total_time)} min</span>`;
   card.appendChild(hdr);
 
-  // Unsafe warning
-  if (type === 'unsafe') {
+  if (type === 'red') {
     const w = document.createElement('div');
     w.className = 'route-card__warning';
-    w.textContent = 'This route passes through marked danger zones!';
+    const source = activeCase === 'reviews' ? 'tourist-review warning' : 'NYPD danger';
+    w.textContent = `This route may pass through marked ${source} zones!`;
     card.appendChild(w);
   }
 
@@ -149,17 +175,18 @@ function buildCard(route, type) {
 function renderResults(data) {
   routeCards.innerHTML = '';
 
-  const { safe_route, unsafe_route } = data;
+  const { green_route, red_route } = data;
 
-  if (!safe_route && unsafe_route) {
+  if (!green_route) {
     const warn = document.createElement('div');
-    warn.className = 'no-safe-warning';
-    warn.innerHTML = '⚠ No safe route could be found. Only the unsafe route is available.';
+    warn.className = 'no-green-warning';
+    const zoneKind = activeCase === 'reviews' ? 'review-flagged' : 'danger';
+    warn.innerHTML = `⚠ No route avoiding all ${zoneKind} zones was found. Showing the shortest route instead.`;
     routeCards.appendChild(warn);
   }
 
-  if (safe_route)   routeCards.appendChild(buildCard(safe_route,   'safe'));
-  if (unsafe_route) routeCards.appendChild(buildCard(unsafe_route, 'unsafe'));
+  if (green_route) routeCards.appendChild(buildCard(green_route, 'green'));
+  if (red_route)   routeCards.appendChild(buildCard(red_route,   'red'));
 
   resultsPanel.style.display = 'block';
 }
@@ -182,7 +209,7 @@ form.addEventListener('submit', async (e) => {
     const resp = await fetch('/api/routes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source_address: srcAddr, destination_address: dstAddr }),
+      body: JSON.stringify({ source_address: srcAddr, destination_address: dstAddr, case: activeCase }),
     });
     const data = await resp.json();
     if (!resp.ok) { showError(data.error || 'No route found.'); return; }
@@ -259,4 +286,10 @@ window.refreshDangerList = refreshDangerList;
   const zones = await (await fetch('/api/danger-zones')).json();
   window.mapHelpers.drawDangerZones(zones);
   refreshDangerList(zones);
+
+  const riskPoints = await (await fetch('/api/review-risk-points')).json();
+  window.mapHelpers.drawReviewRiskPoints(riskPoints);
+
+  const warningZones = await (await fetch('/api/warning-zones')).json();
+  window.mapHelpers.drawWarningZones(warningZones);
 })();

@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, jsonify
 from .pathfinder import find_routes
 from .danger_zones import get_danger_zones, add_danger_zone, remove_danger_zone, import_from_csv
 from .geocoder import geocode, geocode_autocomplete
+from .review_risk_points import get_review_risk_points
+from .warning_zones import get_warning_zones
 
 api_bp = Blueprint('api', __name__)
 
@@ -25,6 +27,7 @@ def routes():
     data = request.get_json()
     src_addr = (data.get('source_address') or '').strip()
     dst_addr = (data.get('destination_address') or '').strip()
+    case = data.get('case') if data.get('case') in ('nypd', 'reviews') else 'nypd'
 
     if not src_addr or not dst_addr:
         return jsonify({'error': 'Please provide both a start and end address.'}), 400
@@ -37,11 +40,11 @@ def routes():
     if not dst_geo:
         return jsonify({'error': f'Could not find "{dst_addr}". Try being more specific.'}), 400
 
-    result = find_routes(src_geo['lat'], src_geo['lng'], dst_geo['lat'], dst_geo['lng'])
+    result = find_routes(src_geo['lat'], src_geo['lng'], dst_geo['lat'], dst_geo['lng'], case=case)
     if result is None:
         return jsonify({'error': 'Walking route service is unavailable. Try again later.'}), 503
 
-    if result['safe_route'] is None and result['unsafe_route'] is None:
+    if result['green_route'] is None and result['red_route'] is None:
         return jsonify({'error': 'No walking route found between these locations.'}), 404
 
     result['source_address'] = src_addr
@@ -52,9 +55,19 @@ def routes():
     return jsonify(result)
 
 
+@api_bp.route('/api/review-risk-points', methods=['GET'])
+def review_risk_points_list():
+    return jsonify(get_review_risk_points())
+
+
 @api_bp.route('/api/danger-zones', methods=['GET'])
 def danger_zones_list():
     return jsonify(get_danger_zones())
+
+
+@api_bp.route('/api/warning-zones', methods=['GET'])
+def warning_zones_list():
+    return jsonify(get_warning_zones())
 
 
 @api_bp.route('/api/danger-zones', methods=['POST'])
