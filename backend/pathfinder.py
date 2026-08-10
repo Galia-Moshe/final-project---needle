@@ -295,7 +295,7 @@ def find_routes(src_lat, src_lng, dst_lat, dst_lng, case="nypd"):
     None on a routing-service failure. Uses ORS (accurate) when a key is
     configured, OSRM heuristic otherwise.
     """
-    avoid_zones = get_warning_zones() if case == "reviews" else get_danger_zones()
+    zones    = get_warning_zones() if case == "reviews" else get_danger_zones()
     route_fn = _route_avoiding_ors if ORS_API_KEY else _route_avoiding_osrm
 
     # Also doubles as an "is the routing service up at all" check.
@@ -303,5 +303,21 @@ def find_routes(src_lat, src_lng, dst_lat, dst_lng, case="nypd"):
     if red_route is None:
         return None
 
+    # A zone containing the source or destination can't be avoided — you have
+    # to start/end inside it — so drop it from the "must avoid" set. Every
+    # other zone is still avoided.
+    endpoints      = [(src_lat, src_lng), (dst_lat, dst_lng)]
+    endpoint_zones = [z for z in zones if any(_in_zone(lat, lng, z) for lat, lng in endpoints)]
+    endpoint_ids   = {z["id"] for z in endpoint_zones}
+    avoid_zones    = [z for z in zones if z["id"] not in endpoint_ids]
+
     green_route = route_fn(src_lat, src_lng, dst_lat, dst_lng, avoid_zones)
+
+    # The endpoint zone itself can still show up as a genuinely unsafe stretch
+    # of the green route (the bit right around the start/end) — flag those
+    # points so the map can draw that stretch red instead of all-green.
+    if green_route is not None and endpoint_zones:
+        for c in green_route["coords"]:
+            c["unsafe"] = any(_in_zone(c["lat"], c["lng"], z) for z in endpoint_zones)
+
     return {"green_route": green_route, "red_route": red_route}

@@ -121,6 +121,7 @@ function clearError()   { formError.style.display = 'none'; }
 const ROUTE_LABELS = {
   green: { badge: '✓ Green Route — Avoids Flagged Zones' },
   red:   { badge: '⚠ Red Route — Absolute Shortest' },
+  only:  { badge: '➜ Only Route Available' },
 };
 
 function buildCard(route, type) {
@@ -140,6 +141,13 @@ function buildCard(route, type) {
     w.className = 'route-card__warning';
     const source = activeCase === 'reviews' ? 'tourist-review warning' : 'NYPD danger';
     w.textContent = `This route may pass through marked ${source} zones!`;
+    card.appendChild(w);
+  }
+
+  if (type === 'only' && route.coords.some(c => c.unsafe)) {
+    const w = document.createElement('div');
+    w.className = 'route-card__warning';
+    w.textContent = 'The stretch right by your start/end point (shown in red on the map) sits inside a flagged zone and can\'t be avoided — the rest of this route avoids all others.';
     card.appendChild(w);
   }
 
@@ -171,6 +179,14 @@ function buildCard(route, type) {
   return card;
 }
 
+// Same physical path either way (walking distance/time aside, every
+// coordinate lines up) — happens when the shortest path already avoids
+// every avoidable zone, so there's no real green-vs-red choice to show.
+function sameRoute(a, b) {
+  if (!a || !b || a.coords.length !== b.coords.length) return false;
+  return a.coords.every((c, i) => c.lat === b.coords[i].lat && c.lng === b.coords[i].lng);
+}
+
 // ── Render results ────────────────────────────────────────────────
 function renderResults(data) {
   routeCards.innerHTML = '';
@@ -183,23 +199,20 @@ function renderResults(data) {
     const zoneKind = activeCase === 'reviews' ? 'review-flagged' : 'danger';
     warn.innerHTML = `⚠ No route avoiding all ${zoneKind} zones was found. Showing the shortest route instead.`;
     routeCards.appendChild(warn);
+    if (red_route) routeCards.appendChild(buildCard(red_route, 'red'));
+  } else if (sameRoute(green_route, red_route)) {
+    routeCards.appendChild(buildCard(green_route, 'only'));
+  } else {
+    routeCards.appendChild(buildCard(green_route, 'green'));
+    routeCards.appendChild(buildCard(red_route,   'red'));
   }
-
-  if (green_route) routeCards.appendChild(buildCard(green_route, 'green'));
-  if (red_route)   routeCards.appendChild(buildCard(red_route,   'red'));
 
   resultsPanel.style.display = 'block';
 }
 
-// ── Form submit ───────────────────────────────────────────────────
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+// ── Shared route search (used by the form and by map click-picking) ──
+async function performSearch(payload) {
   clearError();
-
-  const srcAddr = document.getElementById('source-input').value.trim();
-  const dstAddr = document.getElementById('dest-input').value.trim();
-  if (!srcAddr || !dstAddr) { showError('Please enter both a start and end address.'); return; }
-
   searchBtn.textContent = 'Searching…';
   searchBtn.disabled = true;
   resultsPanel.style.display = 'none';
@@ -209,7 +222,7 @@ form.addEventListener('submit', async (e) => {
     const resp = await fetch('/api/routes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source_address: srcAddr, destination_address: dstAddr, case: activeCase }),
+      body: JSON.stringify(payload),
     });
     const data = await resp.json();
     if (!resp.ok) { showError(data.error || 'No route found.'); return; }
@@ -218,74 +231,39 @@ form.addEventListener('submit', async (e) => {
   } catch {
     showError('Network error — is the server running?');
   } finally {
-    searchBtn.textContent = 'Find Safe Route';
+    searchBtn.textContent = 'Find Safe Walking Route';
     searchBtn.disabled = false;
   }
-});
-
-// ── Danger zone list ──────────────────────────────────────────────
-const dzList   = document.getElementById('danger-zones-list');
-const csvUpload = document.getElementById('csv-upload');
-const csvStatus = document.getElementById('csv-status');
-
-async function refreshDangerList(zones) {
-  if (!zones) zones = await (await fetch('/api/danger-zones')).json();
-  dzList.innerHTML = '';
-  if (!zones.length) { dzList.innerHTML = '<p class="hint">No danger zones marked yet.</p>'; return; }
-  zones.forEach(z => {
-    const div = document.createElement('div');
-    div.className = 'dz-item';
-    const detail = z.polygon && z.polygon.length >= 3
-      ? `${z.polygon.length} boundary points`
-      : `radius: ${z.radius_km} km`;
-    div.innerHTML = `
-      <div><div class="dz-name">${z.name}</div><div class="dz-info">${detail}</div></div>
-      <button class="dz-remove" data-id="${z.id}" title="Remove">&#215;</button>`;
-    dzList.appendChild(div);
-  });
-  dzList.querySelectorAll('.dz-remove').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      await fetch(`/api/danger-zones/${btn.dataset.id}`, { method: 'DELETE' });
-      const updated = await (await fetch('/api/danger-zones')).json();
-      window.mapHelpers.drawDangerZones(updated);
-      refreshDangerList(updated);
-    });
-  });
 }
 
-csvUpload.addEventListener('change', async () => {
-  const file = csvUpload.files[0];
-  if (!file) return;
-  csvStatus.className = '';
-  csvStatus.textContent = 'Importing…';
-  const fd = new FormData();
-  fd.append('file', file);
-  try {
-    const resp = await fetch('/api/danger-zones/import', { method: 'POST', body: fd });
-    const data = await resp.json();
-    if (!resp.ok) {
-      csvStatus.className = 'err';
-      csvStatus.textContent = data.error || 'Import failed.';
-    } else {
-      csvStatus.className = 'ok';
-      csvStatus.textContent = `Imported ${data.imported} zone${data.imported !== 1 ? 's' : ''}.`;
-      window.mapHelpers.drawDangerZones(data.zones);
-      refreshDangerList(data.zones);
-    }
-  } catch {
-    csvStatus.className = 'err';
-    csvStatus.textContent = 'Upload error.';
-  }
-  csvUpload.value = '';
+// ── Form submit ───────────────────────────────────────────────────
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  clearError();
+
+  const srcAddr = document.getElementById('source-input').value.trim();
+  const dstAddr = document.getElementById('dest-input').value.trim();
+  if (!srcAddr || !dstAddr) { showError('Please enter both a start and end address.'); return; }
+
+  performSearch({ source_address: srcAddr, destination_address: dstAddr, case: activeCase });
 });
 
-window.refreshDangerList = refreshDangerList;
+// ── Map click-to-pick source/destination ──────────────────────────
+// Called by map.js once the user has clicked two points on the map.
+window.searchByCoords = (source, dest) => {
+  document.getElementById('source-input').value = `Pinned (${source.lat.toFixed(5)}, ${source.lng.toFixed(5)})`;
+  document.getElementById('dest-input').value = `Pinned (${dest.lat.toFixed(5)}, ${dest.lng.toFixed(5)})`;
+  performSearch({
+    source_lat: source.lat, source_lng: source.lng,
+    dest_lat: dest.lat, dest_lng: dest.lng,
+    case: activeCase,
+  });
+};
 
 // ── Init ──────────────────────────────────────────────────────────
 (async () => {
   const zones = await (await fetch('/api/danger-zones')).json();
   window.mapHelpers.drawDangerZones(zones);
-  refreshDangerList(zones);
 
   const riskPoints = await (await fetch('/api/review-risk-points')).json();
   window.mapHelpers.drawReviewRiskPoints(riskPoints);

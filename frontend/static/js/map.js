@@ -40,6 +40,9 @@ function setActiveCase(caseName) {
 }
 
 // ── Danger zones ─────────────────────────────────────────────────
+// interactive: false so a click inside a zone still falls through to the
+// map's click handler (source/destination picking), instead of the shape
+// swallowing the click to show its own popup.
 function drawDangerZones(zones) {
   dangerLayer.clearLayers();
   zones.forEach(z => {
@@ -47,14 +50,15 @@ function drawDangerZones(zones) {
       // Polygon zone (imported from CSV boundary points)
       L.polygon(z.polygon, {
         color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.2, weight: 2,
-      }).bindPopup(`<b>${z.name}</b>`).addTo(dangerLayer);
+        interactive: false,
+      }).addTo(dangerLayer);
     } else {
       // Circle zone (manually added via map click)
       L.circle([z.lat, z.lng], {
         radius: z.radius_km * 1000,
         color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.18, weight: 2,
-      }).bindPopup(`<b>${z.name}</b><br>radius: ${z.radius_km} km`)
-        .addTo(dangerLayer);
+        interactive: false,
+      }).addTo(dangerLayer);
     }
   });
 }
@@ -66,13 +70,14 @@ function drawWarningZones(zones) {
     if (z.polygon && z.polygon.length >= 3) {
       L.polygon(z.polygon, {
         color: '#eab308', fillColor: '#eab308', fillOpacity: 0.25, weight: 2,
-      }).bindPopup(`<b>${z.name}</b>`).addTo(warningLayer);
+        interactive: false,
+      }).addTo(warningLayer);
     } else {
       L.circle([z.lat, z.lng], {
         radius: z.radius_km * 1000,
         color: '#eab308', fillColor: '#eab308', fillOpacity: 0.2, weight: 2,
-      }).bindPopup(`<b>${z.name}</b><br>radius: ${z.radius_km} km`)
-        .addTo(warningLayer);
+        interactive: false,
+      }).addTo(warningLayer);
     }
   });
 }
@@ -117,6 +122,22 @@ function drawPolyline(coords, color, dashed) {
   }).addTo(routeLayer);
 }
 
+// Like drawPolyline, but each point may carry an `unsafe` flag (set by the
+// backend when the source/destination sits inside a zone that couldn't be
+// avoided) — the stretch through that zone is drawn in unsafeColor instead
+// of solid safeColor, so a route that can't be fully green still reads as
+// "danger near the endpoint, safe everywhere else" rather than all-green.
+function drawZonedPolyline(coords, safeColor, unsafeColor) {
+  if (!coords || coords.length < 2) return;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const unsafe = !!coords[i].unsafe || !!coords[i + 1].unsafe;
+    L.polyline(
+      [[coords[i].lat, coords[i].lng], [coords[i + 1].lat, coords[i + 1].lng]],
+      { color: unsafe ? unsafeColor : safeColor, weight: 5, opacity: 0.85 },
+    ).addTo(routeLayer);
+  }
+}
+
 // ── Source/destination preview pins ────────────────────────────────
 // Shown as soon as the user picks an address, before a route is searched.
 const previewMarkers = { source: null, dest: null };
@@ -157,8 +178,8 @@ function drawRoute(result) {
     addressMarker(dest_geo.lat, dest_geo.lng, '#ef4444', 'Destination').addTo(routeLayer);
 
   // Red drawn first (underneath), green on top
-  if (red_route)   drawPolyline(red_route.coords,   '#ef4444', true);
-  if (green_route) drawPolyline(green_route.coords, '#16a34a', false);
+  if (red_route)   drawPolyline(red_route.coords, '#ef4444', true);
+  if (green_route) drawZonedPolyline(green_route.coords, '#16a34a', '#ef4444');
 
   // Fit map to all route points
   const pts = [];
@@ -170,20 +191,20 @@ function drawRoute(result) {
   if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [50, 50] });
 }
 
-// ── Click → danger zone ───────────────────────────────────────────
-map.on('click', async (e) => {
-  const name = prompt('Name this danger zone (or Cancel to skip):');
-  if (!name) return;
-  const radius_km = parseFloat(prompt('Radius in km (e.g. 0.5):', '0.5')) || 0.5;
-  const resp = await fetch('/api/danger-zones', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, lat: e.latlng.lat, lng: e.latlng.lng, radius_km }),
-  });
-  if (resp.ok) {
-    const zones = await (await fetch('/api/danger-zones')).json();
-    drawDangerZones(zones);
-    window.refreshDangerList && window.refreshDangerList(zones);
+// ── Click → pick source, then destination ─────────────────────────
+// First click drops the start pin, second click drops the destination
+// pin and immediately triggers a route search; a third click starts over.
+let pickedPoints = [];
+
+map.on('click', (e) => {
+  if (pickedPoints.length >= 2) pickedPoints = [];
+
+  pickedPoints.push(e.latlng);
+  if (pickedPoints.length === 1) {
+    setPreviewMarker('source', e.latlng.lat, e.latlng.lng, 'Start');
+  } else {
+    setPreviewMarker('dest', e.latlng.lat, e.latlng.lng, 'Destination');
+    window.searchByCoords && window.searchByCoords(pickedPoints[0], pickedPoints[1]);
   }
 });
 

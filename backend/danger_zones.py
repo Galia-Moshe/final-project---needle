@@ -1,13 +1,9 @@
 import csv
-import io
 import json
 import math
 import uuid
 from collections import defaultdict
 from config import DANGER_ZONES_FILE
-
-# Columns written by _save() — our internal storage format
-FIELDNAMES = ['id', 'name', 'lat', 'lng', 'radius_km', 'polygon']
 
 
 # ── Flexible column lookup (case-insensitive) ─────────────────────
@@ -184,61 +180,3 @@ def _make_circle_zone(name, points):
     }
 
 
-def _save(zones):
-    """Write zones in our internal format (with polygon column as JSON string)."""
-    with open(DANGER_ZONES_FILE, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        writer.writeheader()
-        for zone in zones:
-            writer.writerow({
-                'id':        zone['id'],
-                'name':      zone['name'],
-                'lat':       zone['lat'],
-                'lng':       zone['lng'],
-                'radius_km': zone['radius_km'],
-                'polygon':   json.dumps(zone.get('polygon') or []),
-            })
-
-
-def add_danger_zone(data):
-    zones = get_danger_zones()
-    zone = {
-        'id':        str(uuid.uuid4()),
-        'name':      data.get('name', 'Danger Zone'),
-        'lat':       float(data['lat']),
-        'lng':       float(data['lng']),
-        'radius_km': float(data.get('radius_km', 0.5)),
-        'polygon':   [],   # manually added zones are circles, not polygons
-    }
-    zones.append(zone)
-    _save(zones)
-    return zone
-
-
-def remove_danger_zone(zone_id):
-    zones = get_danger_zones()
-    new_zones = [z for z in zones if z['id'] != zone_id]
-    if len(new_zones) == len(zones):
-        return False
-    _save(new_zones)
-    return True
-
-
-def import_from_csv(file_obj):
-    """
-    Load danger zones from an uploaded CSV file and replace all existing zones.
-    Accepts any column naming; groups multiple coordinate rows by area name.
-    """
-    reader = csv.DictReader(io.TextIOWrapper(file_obj, encoding='utf-8-sig'))
-    rows = list(reader)
-
-    if _is_internal(reader.fieldnames):
-        zones = _parse_internal(rows)
-        # Re-assign fresh IDs so uploaded file is treated as new data
-        for z in zones:
-            z['id'] = str(uuid.uuid4())
-    else:
-        zones = _parse_external(rows)
-
-    _save(zones)
-    return zones

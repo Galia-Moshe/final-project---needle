@@ -161,6 +161,7 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
 }
 .route-card--green { border-color: #16a34a; }
 .route-card--red   { border-color: #ef4444; }
+.route-card--only  { border-color: #64748b; }
 
 .route-card__header {
   display: flex;
@@ -172,6 +173,7 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
 }
 .route-card--green .route-card__header { background: #dcfce7; color: #14532d; }
 .route-card--red   .route-card__header { background: #fee2e2; color: #7f1d1d; }
+.route-card--only  .route-card__header { background: #f1f5f9; color: #334155; }
 
 .route-badge {
   font-size: 12px;
@@ -254,58 +256,11 @@ form button:disabled { background: #6b7280; cursor: not-allowed; }
   border-bottom: 1px solid #e8eaf0;
 }
 
-/* ── CSV upload button ── */
-.csv-upload-btn {
-  display: inline-block;
-  margin-bottom: 10px;
-  padding: 7px 14px;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  color: #374151;
-  transition: background .15s;
-}
-.csv-upload-btn:hover { background: #e5e7eb; }
-
-#csv-status {
-  font-size: 12px;
-  margin-bottom: 8px;
-  min-height: 18px;
-}
-#csv-status.ok  { color: #16a34a; }
-#csv-status.err { color: #b91c1c; }
-
-/* ── Danger zones list ── */
 .hint {
   font-size: 12px;
   color: #6b7280;
   margin-bottom: 10px;
 }
-
-.dz-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 12px;
-}
-.dz-item:last-child { border-bottom: none; }
-.dz-name { font-weight: 600; }
-.dz-info { color: #6b7280; font-size: 11px; }
-.dz-remove {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0 4px;
-}
-.dz-remove:hover { color: #b91c1c; }
 
 /* ── Map ── */
 #map {
