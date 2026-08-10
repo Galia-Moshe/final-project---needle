@@ -1,0 +1,416 @@
+ import pandas as pd
+# import geopandas as gpd
+# import matplotlib.pyplot as plt
+# from scipy.stats import chi2_contingency
+# from math import radians, sin, cos, sqrt, atan2, pi
+# import numpy as np
+
+# # ==========================================================
+# # Load attractions
+# # ==========================================================
+# attractions = pd.read_csv("attractions.csv")
+
+# attractions_gdf = gpd.GeoDataFrame(
+#     attractions,
+#     geometry=gpd.points_from_xy(
+#         attractions["lon"],
+#         attractions["lat"]
+#     ),
+#     crs="EPSG:4326"
+# )
+
+# # ==========================================================
+# # Load crime data
+# # ==========================================================
+# crimes = pd.read_csv("clean_nypd.csv")
+
+# crimes = crimes.dropna(subset=["lat", "lon"])
+
+# crimes_gdf = gpd.GeoDataFrame(
+#     crimes,
+#     geometry=gpd.points_from_xy(
+#         crimes["lon"],
+#         crimes["lat"]
+#     ),
+#     crs="EPSG:4326"
+# )
+
+# # ==========================================================
+# # Convert to projected CRS (meters)
+# # ==========================================================
+# attractions_gdf = attractions_gdf.to_crs(epsg=32618)
+# crimes_gdf = crimes_gdf.to_crs(epsg=32618)
+
+# # ==========================================================
+# # Create 500m tourist buffers
+# # ==========================================================
+# buffers = attractions_gdf.copy()
+# buffers["geometry"] = buffers.buffer(500)
+
+# # ==========================================================
+# # Spatial Join
+# # ==========================================================
+# joined = gpd.sjoin(
+#     crimes_gdf,
+#     buffers[["geometry"]],
+#     how="left",
+#     predicate="within"
+# )
+
+# joined["tourist_zone"] = joined["index_right"].notna()
+# joined = joined.drop(columns=["index_right"])
+
+# # ==========================================================
+# # Save CSV (convert back to lat/lon)
+# # ==========================================================
+# joined_save = joined.to_crs(epsg=4326)
+
+# joined_save["lon"] = joined_save.geometry.x
+# joined_save["lat"] = joined_save.geometry.y
+
+# joined_save.drop(columns="geometry").to_csv(
+#     "crimes_with_zone_flag.csv",
+#     index=False
+# )
+
+# print("Tourist-zone tagging complete.")
+# print(joined_save["tourist_zone"].value_counts())
+
+# # ==========================================================
+# # Split inside / outside
+# # ==========================================================
+# inside = joined[joined["tourist_zone"]]
+# outside = joined[~joined["tourist_zone"]]
+
+# # ==========================================================
+# # Compute Areas (km²)
+# # ==========================================================
+
+# # Tourist area (union avoids double counting overlapping buffers)
+# tourist_zone = buffers.unary_union
+# inside_area = tourist_zone.area / 1e6
+
+# # Approximate study area using convex hull
+# study_area = crimes_gdf.unary_union.convex_hull
+# total_area = study_area.area / 1e6
+
+# outside_area = total_area - inside_area
+
+# print(f"Inside area : {inside_area:.2f} km²")
+# print(f"Outside area: {outside_area:.2f} km²")
+
+# # ==========================================================
+# # Compute normalized crime rates
+# # ==========================================================
+
+# crime_levels = [
+#     "FELONY",
+#     "MISDEMEANOR",
+#     "VIOLATION"
+# ]
+
+# rows = []
+
+# for level in crime_levels:
+
+#     inside_count = len(
+#         inside[inside["law_category"] == level]
+#     )
+
+#     outside_count = len(
+#         outside[outside["law_category"] == level]
+#     )
+
+#     inside_rate = inside_count / inside_area if inside_area > 0 else 0
+#     outside_rate = outside_count / outside_area if outside_area > 0 else 0
+
+#     risk_score = (
+#         inside_rate / outside_rate
+#         if outside_rate > 0 else None
+#     )
+
+#     rows.append({
+#         "Crime_Type": level,
+#         "Inside_Crimes": inside_count,
+#         "Outside_Crimes": outside_count,
+#         "Inside_Rate_per_km2": inside_rate,
+#         "Outside_Rate_per_km2": outside_rate,
+#         "Risk_Score": risk_score
+#     })
+
+# rates = pd.DataFrame(rows)
+
+# rates.to_csv("normalized_rate_comparison.csv", index=False)
+
+# print("\nNormalized Rates")
+# print(rates)
+
+# # ==========================================================
+# # Plot normalized rates
+# # ==========================================================
+
+# plot_df = rates.set_index("Crime_Type")[
+#     [
+#         "Inside_Rate_per_km2",
+#         "Outside_Rate_per_km2"
+#     ]
+# ]
+
+# ax = plot_df.plot(
+#     kind="bar",
+#     figsize=(9,6)
+# )
+
+# ax.set_ylabel("Crime Rate (crimes per km²)")
+# ax.set_xlabel("Crime Category")
+# ax.set_title("Crime Density Inside vs Outside Tourist Zones")
+
+# plt.xticks(rotation=0)
+# plt.grid(axis="y", linestyle="--", alpha=0.4)
+
+# plt.tight_layout()
+# plt.savefig(
+#     "normalized_rate_comparison.png",
+#     dpi=300
+# )
+
+# plt.show()
+
+
+
+
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from scipy.stats import chi2_contingency
+
+# # ==========================================================
+# # Load data
+# # ==========================================================
+
+# df = pd.read_csv("crimes_with_zone_flag.csv")
+
+# df = df.dropna(subset=["offense_desc", "tourist_zone"])
+
+# df["tourist_zone"] = df["tourist_zone"].astype(int)
+
+# # ==========================================================
+# # Filter rare crime types (GLOBAL + TOURIST stability)
+# # ==========================================================
+
+# MIN_TOTAL = 50
+# MIN_TOURIST = 5
+
+# crime_counts = df["offense_desc"].value_counts()
+# tourist_counts = df[df["tourist_zone"] == 1]["offense_desc"].value_counts()
+
+# valid_crimes = crime_counts[
+#     (crime_counts >= MIN_TOTAL) &
+#     (tourist_counts >= MIN_TOURIST)
+# ].index
+
+# df = df[df["offense_desc"].isin(valid_crimes)]
+
+# print(f"Number of crime types kept: {len(valid_crimes)}")
+
+# # ==========================================================
+# # LIFT (CORRECT DEFINITION - NO SMOOTHING)
+# # ==========================================================
+
+# tourist_df = df[df["tourist_zone"] == 1]
+
+# A = tourist_df["offense_desc"].value_counts()  # tourist counts
+# C = df["offense_desc"].value_counts()          # city counts
+
+# B = len(tourist_df)  # total tourist crimes
+# D = len(df)           # total city crimes
+
+# rows = []
+
+# for offense in C.index:
+
+#     a = A.get(offense, 0)
+#     c = C[offense]
+
+#     # skip unstable rare signals (already mostly filtered above)
+#     if c < 30:
+#         continue
+
+#     # P(crime | tourist zone)
+#     p_tourist = a / B
+
+#     # P(crime | city)
+#     p_city = c / D
+
+#     lift = p_tourist / (p_city + 1e-12)
+
+#     rows.append({
+#         "Crime_Type": offense,
+#         "Tourist_Count": a,
+#         "City_Count": c,
+#         "Lift": lift
+#     })
+
+# lift_df = pd.DataFrame(rows)
+
+# lift_df = lift_df.sort_values("Lift", ascending=False)
+
+# lift_df = lift_df[lift_df["Tourist_Count"] >= 10]
+
+# top20 = lift_df.head(20)
+
+# top20.to_csv("lift_table.csv", index=False)
+
+# print("\nTop 20 Crime Types by Lift")
+# print(top20)
+
+# # ==========================================================
+# # CHI-SQUARED TEST
+# # ==========================================================
+
+# contingency = pd.crosstab(
+#     df["offense_desc"],
+#     df["tourist_zone"]
+# )
+
+# chi2, p, dof, expected = chi2_contingency(contingency)
+
+# print("\nChi-Squared Test")
+# print(f"Chi² statistic : {chi2:.2f}")
+# print(f"Degrees freedom: {dof}")
+# print(f"P-value        : {p:.6g}")
+
+# if p < 0.05:
+#     print("Crime distributions differ significantly between tourist and non-tourist zones.")
+# else:
+#     print("No statistically significant difference found.")
+
+# # ==========================================================
+# # DIVERGING BAR CHART
+# # ==========================================================
+
+# plot_df = top20.sort_values("Lift")
+
+# colors = ["firebrick" if x > 1 else "steelblue" for x in plot_df["Lift"]]
+
+# plt.figure(figsize=(12, 8))
+
+# plt.barh(
+#     plot_df["Crime_Type"],
+#     plot_df["Lift"],
+#     color=colors
+# )
+
+# plt.axvline(1, color="black", linestyle="--", linewidth=2)
+
+# plt.xlabel("Lift")
+# plt.ylabel("Crime Type")
+# plt.title("Top Crime Types Overrepresented in Tourist Zones")
+
+# plt.tight_layout()
+
+# plt.savefig("lift_diverging_chart.png", dpi=300)
+
+# plt.show()
+import pandas as pd
+import pandas as pd
+import numpy as np
+from math import radians, sin, cos, sqrt, atan2
+
+# ==========================================================
+# Load data
+# ==========================================================
+df = pd.read_csv("crimes_with_zone_flag.csv")
+
+df = df.dropna(subset=["offense_desc"])
+df = df[df["offense_desc"] != "(NULL)"]
+
+# ==========================================================
+# Tourist center (same reference point for all radii)
+# ==========================================================
+tourist_center = (
+    df[df["tourist_zone"] == 1]["lat"].mean(),
+    df[df["tourist_zone"] == 1]["lon"].mean()
+)
+
+# ==========================================================
+# Haversine distance
+# ==========================================================
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371000
+
+    phi1, phi2 = radians(lat1), radians(lat2)
+    dphi = radians(lat2 - lat1)
+    dlambda = radians(lon2 - lon1)
+
+    a = sin(dphi/2)**2 + cos(phi1)*cos(phi2)*sin(dlambda/2)**2
+    return 2 * R * atan2(sqrt(a), sqrt(1 - a))
+
+df["distance_m"] = df.apply(
+    lambda r: haversine(r["lat"], r["lon"], tourist_center[0], tourist_center[1]),
+    axis=1
+)
+
+# ==========================================================
+# Radii (CUMULATIVE BUFFERS)
+# ==========================================================
+RADIUSES = [250, 500, 1000]
+
+results = []
+
+total_city = len(df)
+city_counts = df["offense_desc"].value_counts()
+
+# ==========================================================
+# LIFT PER RADIUS
+# ==========================================================
+for r in RADIUSES:
+
+    dfr = df[df["distance_m"] <= r]
+
+    for crime, city_count in city_counts.items():
+
+        if city_count < 30:
+            continue  # remove noise
+
+        local_count = dfr[dfr["offense_desc"] == crime].shape[0]
+
+        # probability in buffer
+        p_local = local_count / len(dfr)
+
+        # probability in city
+        p_city = city_count / total_city
+
+        lift = (local_count / len(dfr)) / (city_count / total_city)
+        results.append([
+            r,
+            crime,
+            local_count,
+            city_count,
+            lift
+        ])
+
+# ==========================================================
+# OUTPUT TABLE
+# ==========================================================
+result_df = pd.DataFrame(results, columns=[
+    "radius_m",
+    "offense_desc",
+    "local_count",
+    "city_count",
+    "lift"
+])
+
+result_df.to_csv("sensitivity_table.csv", index=False)
+
+# ==========================================================
+# TOP 5 PER RADIUS
+# ==========================================================
+top5 = (
+    result_df.sort_values(["radius_m", "lift"], ascending=[True, False])
+    .groupby("radius_m")
+    .head(5)
+)
+
+print("\nTOP 5 PER RADIUS:")
+print(top5)

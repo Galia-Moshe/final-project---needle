@@ -1,3 +1,6 @@
 .env
 __pycache__/
 *.pyc
+# PyCharm lock files
+.idea/copilot/chatSessions/*.lck
+.idea/copilot/
