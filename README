@@ -1,6 +1,10 @@
 files summery :
 
-1.
+1. NYC Safe Walking Route Finder - This folder contains the project's routing and safety-analysis module, featuring a Flask web app that provides
+NYC tourists with safety-optimized walking routes. It allows users to instantly compare the standard shortest path against two alternatives: an objective
+route avoiding NYPD crime hotspots (identified via HDBSCAN clustering) and a subjective route bypassing areas flagged by NLP-analyzed Airbnb reviews. 
+The module integrates these precomputed hazard zones into a routing layer (OpenRouteService/OSRM) to generate safe detours, and includes a built-in evaluation
+suite to benchmark the models across tourist areas based on distance overhead, hazard-avoidance rates, and latency.
 
 2.
 
