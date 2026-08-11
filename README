@@ -5,9 +5,10 @@ files summery :
 2.
 
 3. tourism-crime-corolation -
-    This analysis investigates whether crime patterns near major tourist attractions in New York City differ from those across the city.
-Using GeoPandas, 500-meter buffer zones are created around tourist attractions in a projected coordinate system (EPSG:32618), and NYPD
-crime records are spatially joined to classify incidents as occurring inside or outside tourist zones. Crime density is compared between
-these areas, while a Lift metric is used to identify specific offense types that are disproportionately common near tourist attractions.
-A chi-squared test evaluates whether the overall crime-type distribution differs significantly between tourist and non-tourist areas,
-and a sensitivity analysis using 250m, 500m, and 1000m buffers tests the robustness of the findings across different spatial scales.
+This code analyzes crime patterns around tourist attractions in New York City by creating geographic tourist zones
+and comparing crimes inside and outside these areas. It uses GeoPandas to create 500-meter buffers around attractions
+and spatially joins NYPD crime records to determine whether each incident occurred within a tourist zone. The analysis 
+compares crime rates per km² across different crime categories, calculates Lift scores to identify offense types that 
+are disproportionately common near tourist areas, and applies a chi-squared test to determine whether crime distributions
+differ significantly between tourist and non-tourist zones. Finally, a sensitivity analysis compares Lift results across 250m,
+500m, and 1000m radii to evaluate the robustness of the findings across different spatial scales.
