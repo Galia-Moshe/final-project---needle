@@ -2,8 +2,8 @@
 
 A data-science project analyzing NYC crime data to help tourists move through the
 city more safely. The work is split into modules: a shared data-cleaning
-foundation, a safety-aware walking-route finder, and a crime–tourism correlation
-analysis.
+foundation, a crime-zone clustering analysis, a safety-aware walking-route
+finder, and a crime–tourism correlation analysis.
 
 ---
 
@@ -60,17 +60,41 @@ modules.
 
 ---
 
-## 2. NYC Safe Walking Route Finder
+## 2. question_1_code
 
-This folder contains the project's routing and safety-analysis module, featuring
-a Flask web app that provides NYC tourists with safety-optimized walking routes.
-It allows users to instantly compare the standard shortest path against two
-alternatives: an objective route avoiding NYPD crime hotspots (identified via
-HDBSCAN clustering) and a subjective route bypassing areas flagged by
-NLP-analyzed Airbnb reviews. The module integrates these precomputed hazard zones
-into a routing layer (OpenRouteService/OSRM) to generate safe detours, and
-includes a built-in evaluation suite to benchmark the models across tourist areas
-based on distance overhead, hazard-avoidance rates, and latency.
+This folder contains the project's **crime-zone clustering module (Research
+Question 1)**. It groups NYC police precincts into a small number of interpretable
+"crime zones" based on their crime profile, so the rest of the project can reason
+about areas by risk type rather than raw counts. It takes precinct-level crime
+features, clusters them with KMeans, validates the result, and renders the zones
+as maps. It is designed to run on the cleaned data from module 1, but can also
+pull its own data directly from the NYC Open Data API.
+
+**Files**
+
+- **`fetch_data.py`** — Optional data source. Queries the NYC Open Data (Socrata)
+  API for NYPD complaints in a recent window (2021 onward, so clusters reflect
+  current patterns) and returns two aggregate tables: complaint counts by
+  precinct × offense type, and by precinct × law category (felony / misdemeanor /
+  violation). **Outputs:** `pct_offense.csv`, `pct_lawcat.csv` — used as a
+  fallback input when a cleaned CSV isn't supplied.
+
+- **`q1_pipeline.py`** — The full Q1 pipeline, run in one command. It auto-detects
+  the crime columns (working with either the raw NYPD names or the team's cleaned
+  names), streams the crime CSV in chunks, and builds a per-precinct feature table
+  (total crime, crime per km² using real precinct areas from NYC Open Data
+  boundaries, felony/misdemeanor percentages, and theft/assault/drug/fraud/
+  harassment shares). It then normalizes the features with a `StandardScaler` and
+  runs KMeans clustering into four crime zones, choosing k with an elbow +
+  silhouette analysis. It validates the clusters internally (cohesion/SSE,
+  centroid separation, silhouette scores, and a similarity-matrix heatmap),
+  auto-names each zone by density and theft-vs-assault tilt (e.g. "Low-risk
+  residential," "High-density theft / tourist core"), and produces both static and
+  interactive choropleth maps of the zones. **Inputs:** a filtered NYPD complaint
+  CSV via `--crime` (or the `fetch_data.py` API aggregates as a fallback).
+  **Outputs:** `precinct_features.csv`, `elbow_curve.png`, `cluster_labels.csv`,
+  `similarity_heatmap.png`, `q1_metrics.csv`, `crime_zones_map.png`, and
+  `crime_zones_map.html`.
 
 ---
 
@@ -87,3 +111,17 @@ determine whether crime distributions differ significantly between tourist and
 non-tourist zones. Finally, a sensitivity analysis compares Lift results across
 250m, 500m, and 1000m radii to evaluate the robustness of the findings across
 different spatial scales.
+
+---
+
+## 4. NYC Safe Walking Route Finder
+
+This folder contains the project's routing and safety-analysis module, featuring
+a Flask web app that provides NYC tourists with safety-optimized walking routes.
+It allows users to instantly compare the standard shortest path against two
+alternatives: an objective route avoiding NYPD crime hotspots (identified via
+HDBSCAN clustering) and a subjective route bypassing areas flagged by
+NLP-analyzed Airbnb reviews. The module integrates these precomputed hazard zones
+into a routing layer (OpenRouteService/OSRM) to generate safe detours, and
+includes a built-in evaluation suite to benchmark the models across tourist areas
+based on distance overhead, hazard-avoidance rates, and latency.
