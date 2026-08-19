@@ -26,12 +26,14 @@ Design rationale (see the project's `dataviz` skill for the full method):
     (model names), plus one shared legend — never color alone.
 
 Usage:
-    python evaluation/visualize_model_comparison.py [--output evaluation/model_comparison.png]
+    python evaluation/visualize_model_comparison.py [--input evaluation/evaluation_results.csv]
+                                                      [--output evaluation/model_comparison.png]
 
 Requires: matplotlib, seaborn (both in requirements.txt).
 """
 
 import argparse
+import csv
 import os
 
 import matplotlib
@@ -40,58 +42,116 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
 
+# evaluate_routes.py lives next to this file; importing it (rather than
+# reimplementing the aggregation) is what keeps this chart from drifting out
+# of sync with evaluation_results.csv the way the old hardcoded values did.
+from evaluate_routes import compute_summary_stats
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# ── DATA ─────────────────────────────────────────────────────────
-# Edit these to re-plot with a different run. Each entry is one panel.
-
 MODELS = ["NYPD Model", "Airbnb Model"]
+MODEL_SCENARIO = {"NYPD Model": "nypd", "Airbnb Model": "airbnb"}
 
-METRICS = [
-    {
-        "key": "hazard_avoidance",
-        "title": "Hazard Avoidance Rate",
-        "better": "higher",
-        "unit_suffix": "%",
-        "value_fmt": "{:.1f}%",
-        "values": {"NYPD Model": 55.8, "Airbnb Model": 96.6},
-        "ylabel": "% of hazard-exposed routes avoided",
-    },
-    {
-        "key": "distance_overhead",
-        "title": "Distance Overhead",
-        "better": "lower",
-        "unit_suffix": "%",
-        "value_fmt": "{:.1f}%",
-        "values": {"NYPD Model": 10.2, "Airbnb Model": 18.5},
-        "ylabel": "% increase over shortest route",
-    },
-    {
-        "key": "calc_time",
-        "title": "Calculation Time",
-        "better": "lower",
-        "unit_suffix": "s",
-        "value_fmt": "{:.2f}s",
-        "values": {"NYPD Model": 0.12, "Airbnb Model": 0.28},
-        "ylabel": "seconds per route",
-    },
-    {
-        "key": "route_distance",
-        "title": "Avg. Route Distance",
-        "better": None,   # contextual, not a "win" metric
-        "unit_suffix": " km",
-        "value_fmt": "{:.2f} km",
-        "values": {"NYPD Model": 3.82, "Airbnb Model": 4.11},
-        "ylabel": "kilometers",
-    },
-]
 
-EXPERIMENT_CONTEXT = ""
+# ── DATA LOADING ─────────────────────────────────────────────────
 
-TAKEAWAY_TITLE = (
-    "Airbnb Model Yields Superior Hazard Avoidance (96.6%) at the\n"
-    "Cost of Higher Distance Overhead and Compute Time"
-)
+def load_rows(csv_path):
+    """Read evaluation_results.csv back into the same row-dict shape
+    evaluate_routes.evaluate() builds in memory, so compute_summary_stats()
+    can be reused verbatim instead of re-derived here."""
+    def _num(v):
+        return float(v) if v not in ("", None) else None
+
+    def _flag(v):
+        return v == "True" if v not in ("", None) else None
+
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        return [
+            {
+                "od_id": int(row["od_id"]),
+                "scenario": row["scenario"],
+                "status": row["status"],
+                "overhead_pct": _num(row["overhead_pct"]),
+                "distance_km": _num(row["distance_km"]),
+                "calc_time_sec": _num(row["calc_time_sec"]),
+                "danger_zones_crossed": _num(row["danger_zones_crossed"]),
+                "warning_zones_crossed": _num(row["warning_zones_crossed"]),
+                "entered_danger_zone": _flag(row["entered_danger_zone"]),
+                "entered_warning_zone": _flag(row["entered_warning_zone"]),
+            }
+            for row in csv.DictReader(f)
+        ]
+
+
+def build_metrics(stats):
+    """Turns compute_summary_stats() output into the same panel-spec shape
+    the chart used to hardcode. Each entry is one panel."""
+    nypd, airbnb = stats["nypd"], stats["airbnb"]
+
+    def v(layer, key):
+        return layer[key] if layer[key] is not None else 0.0
+
+    def av(layer):
+        pct = layer["avoidance"]["pct"]
+        return pct if pct is not None else 0.0
+
+    return [
+        {
+            "key": "hazard_avoidance", "title": "Hazard Avoidance Rate", "better": "higher",
+            "unit_suffix": "%", "value_fmt": "{:.1f}%",
+            "values": {"NYPD Model": av(nypd), "Airbnb Model": av(airbnb)},
+            "ylabel": "% of hazard-exposed routes avoided",
+        },
+        {
+            "key": "distance_overhead", "title": "Distance Overhead", "better": "lower",
+            "unit_suffix": "%", "value_fmt": "{:.1f}%",
+            "values": {"NYPD Model": v(nypd, "avg_overhead"), "Airbnb Model": v(airbnb, "avg_overhead")},
+            "ylabel": "% increase over shortest route",
+        },
+        {
+            "key": "calc_time", "title": "Calculation Time", "better": "lower",
+            "unit_suffix": "s", "value_fmt": "{:.2f}s",
+            "values": {"NYPD Model": v(nypd, "avg_calc_time"), "Airbnb Model": v(airbnb, "avg_calc_time")},
+            "ylabel": "seconds per route",
+        },
+        {
+            "key": "route_distance", "title": "Avg. Route Distance", "better": None,
+            "unit_suffix": " km", "value_fmt": "{:.2f} km",
+            "values": {"NYPD Model": v(nypd, "avg_distance"), "Airbnb Model": v(airbnb, "avg_distance")},
+            "ylabel": "kilometers",
+        },
+    ]
+
+
+def build_takeaway_title(stats):
+    """Derives the headline from whichever model actually wins hazard
+    avoidance in this run, and only names a metric as a 'cost' if the winner
+    really is worse on it — so the claim can't silently invert again the way
+    the old hardcoded 'higher distance overhead' line did."""
+    nypd, airbnb = stats["nypd"], stats["airbnb"]
+    n_av, a_av = nypd["avoidance"]["pct"], airbnb["avoidance"]["pct"]
+    if n_av is None or a_av is None:
+        return "NYPD vs. Airbnb Safety Model — Hazard Avoidance Comparison"
+
+    winner_name, winner, loser = ("Airbnb", airbnb, nypd) if a_av >= n_av else ("NYPD", nypd, airbnb)
+
+    costs = []
+    if winner["avg_overhead"] is not None and loser["avg_overhead"] is not None \
+            and winner["avg_overhead"] > loser["avg_overhead"]:
+        costs.append("Higher Distance Overhead")
+    if winner["avg_calc_time"] is not None and loser["avg_calc_time"] is not None \
+            and winner["avg_calc_time"] > loser["avg_calc_time"]:
+        costs.append("Higher Compute Time")
+
+    winner_av = winner["avoidance"]["pct"]
+    if not costs:
+        return f"{winner_name} Model Yields Superior Hazard Avoidance ({winner_av}%)\nWith No Tradeoff on Distance or Compute Time"
+    return (f"{winner_name} Model Yields Superior Hazard Avoidance ({winner_av}%) at the\n"
+            f"Cost of {' and '.join(costs)}")
+
+
+def build_experiment_context(stats):
+    return f"Based on {stats['n_od']} OD pairs  |  Routing engine: {stats['engine']}"
 
 # ── STYLE ────────────────────────────────────────────────────────
 # Two fixed categorical slots (blue / orange) from the project's validated
@@ -164,17 +224,17 @@ def _draw_panel(ax, metric):
 
 # ── Figure assembly ──────────────────────────────────────────────
 
-def build_figure():
+def build_figure(metrics, takeaway_title, experiment_context):
     """
     Explicit inches-based layout (rather than suptitle + tight_layout): the
     figure height is the exact sum of each band's height, so the saved PNG
     hugs its content with no dead space between the legend and the panels,
     regardless of title line count.
     """
-    n = len(METRICS)
+    n = len(metrics)
     fig_w = 16.0
     title_h    = 0.95   # two-line bold takeaway title
-    subtitle_h = 0.0
+    subtitle_h = 0.28   # one-line "N OD pairs | engine" context line
     legend_h   = 0.35
     gap        = 0.75   # gap between legend and panels (room for 2-line panel titles)
     panels_h   = 4.30    # bar area, incl. panel titles + x tick labels
@@ -189,7 +249,7 @@ def build_figure():
                            top=panels_top, bottom=panels_bottom)
     axes = [fig.add_subplot(gs[0, i]) for i in range(n)]
 
-    for ax, metric in zip(axes, METRICS):
+    for ax, metric in zip(axes, metrics):
         ax.set_facecolor(SURFACE)
         _draw_panel(ax, metric)
 
@@ -199,9 +259,9 @@ def build_figure():
     subtitle_y = 1 - (title_h + subtitle_h * 0.5) / fig_h
     legend_y = 1 - (title_h + subtitle_h + legend_h * 0.5) / fig_h
 
-    fig.text(0.5, title_y, TAKEAWAY_TITLE, ha="center", va="center",
+    fig.text(0.5, title_y, takeaway_title, ha="center", va="center",
               fontsize=17, fontweight="bold", color=INK_PRIMARY, linespacing=1.4)
-    fig.text(0.5, subtitle_y, EXPERIMENT_CONTEXT, ha="center", va="center",
+    fig.text(0.5, subtitle_y, experiment_context, ha="center", va="center",
               fontsize=10, color=INK_SECONDARY)
 
     # One shared legend (color -> model identity), never per-panel repeats.
@@ -217,15 +277,26 @@ def build_figure():
 
 def main():
     ap = argparse.ArgumentParser(description="Render the NYPD-vs-Airbnb model comparison chart.")
+    ap.add_argument("--input", type=str,
+                     default=os.path.join(PROJECT_ROOT, "evaluation", "evaluation_results.csv"),
+                     help="input evaluation_results.csv path")
     ap.add_argument("--output", type=str,
                      default=os.path.join(PROJECT_ROOT, "evaluation", "model_comparison.png"),
                      help="output PNG path")
     args = ap.parse_args()
 
-    fig = build_figure()
+    rows = load_rows(args.input)
+    stats = compute_summary_stats(rows)
+
+    metrics = build_metrics(stats)
+    takeaway_title = build_takeaway_title(stats)
+    experiment_context = build_experiment_context(stats)
+
+    fig = build_figure(metrics, takeaway_title, experiment_context)
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     fig.savefig(args.output, dpi=300, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
+    print(f"Loaded {len(rows)} rows from {args.input} ({stats['n_od']} OD pairs, engine: {stats['engine']})")
     print(f"Saved -> {args.output}")
 
 
